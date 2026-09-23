@@ -6,13 +6,20 @@ import json
 from datetime import datetime, timezone
 from email.parser import BytesParser
 from email.policy import default
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Header, HTTPException, Request
+from pydantic import BaseModel, Field
 
+from .career_paths import build_career_paths
 from .store import store
 
 router = APIRouter()
+
+
+class CareerPathRequest(BaseModel):
+    preferred_format: Literal["online", "offline", "self_paced"] | None = None
+    hours_per_week: float | None = Field(default=None, gt=0, le=40)
 
 
 @router.get("/employees")
@@ -28,6 +35,16 @@ def employee_profile(employee_id: str) -> dict[str, Any]:
 @router.post("/employees/{employee_id}/complete/{event_id}")
 def complete(employee_id: str, event_id: str) -> dict[str, Any]:
     return store.complete(employee_id, event_id)
+
+
+@router.post("/employees/{employee_id}/career-paths")
+def career_paths(employee_id: str, request: CareerPathRequest) -> dict[str, Any]:
+    return build_career_paths(
+        store,
+        employee_id,
+        preferred_format=request.preferred_format,
+        hours_per_week=request.hours_per_week,
+    )
 
 
 @router.post("/recommendations/{employee_id}")
