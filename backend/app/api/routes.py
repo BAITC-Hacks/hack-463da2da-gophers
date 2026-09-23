@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+from datetime import datetime, timezone
 from email.parser import BytesParser
 from email.policy import default
 from typing import Any
@@ -36,7 +37,34 @@ def recommendations(employee_id: str) -> Any:
         from app.ai.recommender import recommend  # owned by the AI track
     except ImportError as exc:
         raise HTTPException(status_code=503, detail="Recommendation engine is not available yet") from exc
-    return recommend(store, employee_id)
+    result = recommend(store, employee_id)
+    return {
+        "employee_id": result.employee_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "engine": result.engine,
+        "recommendations": [
+            {
+                "rank": item.rank,
+                "event": store.event_summary(store.events[item.event_id]),
+                "score": item.score,
+                "factors": [
+                    {
+                        "type": factor.type,
+                        "skill_id": factor.skill_id,
+                        "message": factor.message,
+                        "weight": factor.weight,
+                    }
+                    for factor in item.factors
+                ],
+                "explanation": {
+                    "language": item.explanation.language,
+                    "text": item.explanation.text,
+                    "factors_used": item.explanation.factors_used,
+                },
+            }
+            for item in result.recommendations
+        ],
+    }
 
 
 @router.get("/hr/dashboard")
