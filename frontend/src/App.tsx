@@ -8,7 +8,7 @@ export default function App() {
   return (
     <main className="app-shell">
       <header className="app-header">
-        <NavLink className="brand" to="/employee"><span className="brand-mark">◈</span><span>Career Quest <small>for Halyk Bank</small></span></NavLink>
+        <NavLink className="brand" to="/employee"><span className="brand-mark"><img src="/halyk-logo.svg" alt="Halyk Bank" /></span><span>Career Quest <small>for Halyk Bank</small></span></NavLink>
         <div className="bank-context"><span>⌖ Алматы</span><small>пр. Аль-Фараби, 40</small></div><nav aria-label="Основная навигация">
           <NavLink to="/employee">Мой путь</NavLink>
           <NavLink to="/hr">HR-дашборд</NavLink>
@@ -25,4 +25,3 @@ export default function App() {
     </main>
   )
 }
-
