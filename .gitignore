@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+
+# Env & secrets
+.env
+
+# OS junk
+.DS_Store
+__MACOSX/
+
+# IDE
+.idea/
+.vscode/
