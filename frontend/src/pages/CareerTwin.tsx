@@ -8,7 +8,7 @@ const copy = {
   en: { heading: 'Choose another path', intro: 'Compare two routes for your available time and preferred format.', format: 'Learning format', any: 'Any format', online: 'Online', offline: 'Offline', self_paced: 'Self paced', hours: 'Hours per week', show: 'Show paths', loading: 'Finding paths…', error: 'Could not load paths. Please try again.', empty: 'No eligible steps match these constraints.', fast: 'Fast path', flexible: 'Flexible path', total: 'Total hours', weeks: 'Estimated weeks', readiness: 'Next grade readiness', why: 'Why this path', limited: 'The flexible path honors your selected format', time: 'The time estimate uses your available hours per week', default: 'No format restriction', step: 'Step', hoursShort: 'h', changed: 'The format constraint changed the flexible path steps', same: 'The selected format fits both paths, so the steps stayed the same', noLimit: 'With no format constraint, paths favor speed and convenience' },
 } as const
 
-export function CareerTwin({ employeeId, language }: { employeeId: string; language: Language }) {
+export function CareerTwin({ employeeId, token, language }: { employeeId: string; token: string; language: Language }) {
   const t = copy[language] ?? copy.ru
   const [open, setOpen] = useState(false)
   const [format, setFormat] = useState<ActivityFormat | ''>('')
@@ -17,7 +17,7 @@ export function CareerTwin({ employeeId, language }: { employeeId: string; langu
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
 
-  useEffect(() => { setResult(null); setError(false); setOpen(false) }, [employeeId])
+  useEffect(() => { setResult(null); setError(false); setOpen(false) }, [employeeId, token])
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

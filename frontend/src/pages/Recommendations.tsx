@@ -3,7 +3,7 @@ import { careerQuestApi, type RecommendationResponse } from '../api/client'
 import type { Language } from '../api/types'
 import { labels } from '../i18n'
 
-export function Recommendations({ employeeId, language, onCompleted }: { employeeId: string; language: Language; onCompleted: () => void }) {
+export function Recommendations({ employeeId, token, language, onCompleted }: { employeeId: string; token: string; language: Language; onCompleted: () => void }) {
   const [data, setData] = useState<RecommendationResponse>()
   const [error, setError] = useState(false)
   const [pending, setPending] = useState<string | null>(null)
@@ -13,19 +13,19 @@ export function Recommendations({ employeeId, language, onCompleted }: { employe
     let active = true
     setData(undefined)
     setError(false)
-    void careerQuestApi.recommendations(employeeId)
+    void careerQuestApi.recommendations(employeeId, token)
       .then(result => { if (active) setData(result) })
       .catch(() => { if (active) setError(true) })
     return () => { active = false }
-  }, [employeeId])
+  }, [employeeId, token])
 
   async function complete(eventId: string) {
     setPending(eventId)
     setError(false)
     try {
-      await careerQuestApi.complete(employeeId, eventId)
+      await careerQuestApi.complete(employeeId, eventId, token)
       onCompleted()
-      setData(await careerQuestApi.recommendations(employeeId))
+      setData(await careerQuestApi.recommendations(employeeId, token))
     } catch {
       setError(true)
     } finally {

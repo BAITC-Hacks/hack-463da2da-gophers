@@ -71,3 +71,13 @@ body, button, input, select, option { font-family: var(--ui-font); }
 :root[data-theme='light'] .language-control { background: #fffdf7; box-shadow: 0 5px 16px rgba(3,72,42,.09); }
 :root[data-theme='light'] .language-control select { color: #173b2b; }
 :root[data-theme='light'] .language-control select option, :root[data-theme='light'] select option { background: #fffdf7; color: #173b2b; }
+
+/* Role-bound demo access forms keep profile and HR credentials separate. */
+.access-form { display: flex; align-items: end; flex-wrap: wrap; gap: .8rem; margin: 0 0 1.5rem; padding: 1rem 1.2rem; }
+.access-form label { display: grid; flex: 1 1 12rem; gap: .35rem; min-width: 0; color: var(--muted); font-size: .78rem; font-weight: 700; }
+.access-form input { width: 100%; min-height: 2.55rem; border: 1px solid var(--line); border-radius: .7rem; padding: .55rem .7rem; background: var(--bg); color: var(--ink); font: inherit; }
+.access-form input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.access-form button { min-height: 2.55rem; padding-inline: 1rem; border: 0; background: linear-gradient(110deg, var(--green), var(--gold)); color: #082518; font-weight: 800; }
+.access-error { padding: .8rem 1rem; border: 1px solid #e8917a; border-radius: .7rem; color: #ffd5ca; background: rgba(176, 55, 41, .18); }
+:root[data-theme='light'] .access-error { color: #8a2b22; background: #fff0e9; }
+@media (max-width: 700px) { .access-form button { width: 100%; } }
