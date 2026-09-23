@@ -35,16 +35,43 @@ def _load_explain_fn():
 
 
 def recommend(
-    employee_id: str,
-    *,
-    employees: list[dict],
-    events: list[dict],
-    skills_catalog: dict,
-    history_rows: list[dict],
+    employee_id: str | object,
+    *legacy_args: object,
+    employees: list[dict] | None = None,
+    events: list[dict] | None = None,
+    skills_catalog: dict | None = None,
+    history_rows: list[dict] | None = None,
     today: date | None = None,
     top_k: int = 3,
     explain_fn=_UNSET,
 ) -> RecommendationResult:
+    """Build recommendations from explicit datasets or the legacy API store.
+
+    The explicit keyword-only form is the AI contract.  The second form keeps
+    the already released Backend endpoint working while tracks are integrated:
+    ``recommend(store, employee_id)``.
+    """
+    if not isinstance(employee_id, str):
+        if len(legacy_args) != 1:
+            raise TypeError("legacy recommend() expects (store, employee_id)")
+        store = employee_id
+        requested_id = legacy_args[0]
+        if not isinstance(requested_id, str):
+            raise TypeError("employee_id must be a string")
+        try:
+            employees = list(store.employees.values())
+            events = list(store.events.values())
+            skills_catalog = {
+                "skills": list(store.skills.values()),
+                "role_profiles": list(store.role_profiles.values()),
+            }
+            history_rows = list(store.history)
+        except AttributeError as exc:
+            raise TypeError("legacy store does not expose Career Quest datasets") from exc
+        employee_id = requested_id
+
+    if employees is None or events is None or skills_catalog is None or history_rows is None:
+        raise TypeError("employees, events, skills_catalog and history_rows are required")
     employee = next((e for e in employees if e.get("employee_id") == employee_id), None)
     if employee is None:
         raise KeyError(f"employee not found: {employee_id}")
