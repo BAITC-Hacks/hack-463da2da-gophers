@@ -16,6 +16,10 @@ from fastapi import HTTPException
 
 GRADES = ("Junior", "Middle", "Senior", "Lead")
 ALLOWED_STATUSES = {"completed", "in_progress", "dropped", "no_show", "declined", "overdue"}
+# The starter kit defines its evaluation "today" explicitly.  Using the
+# workstation clock would eventually make all scheduled activities disappear.
+DATASET_SNAPSHOT_DATE = "2026-10-01"
+RECURRING_EVENT_IDS = {"EV_036"}
 
 
 class DatasetStore:
@@ -119,18 +123,42 @@ class DatasetStore:
             grade = GRADES[index + 1]
         return self.role_profiles.get((role, grade))
 
+    @staticmethod
+    def reference_date() -> date:
+        """Return the deterministic date of the supplied Career Quest dataset.
+
+        `CAREER_QUEST_TODAY` is useful when a jury supplies another dated
+        dataset, while the documented starter-kit snapshot stays the default.
+        """
+        raw_date = os.getenv("CAREER_QUEST_TODAY", DATASET_SNAPSHOT_DATE)
+        try:
+            return date.fromisoformat(raw_date)
+        except ValueError:
+            return date.fromisoformat(DATASET_SNAPSHOT_DATE)
+
     def summary(self, employee: dict[str, Any]) -> dict[str, Any]:
         keys = ("employee_id", "full_name", "department", "role", "grade", "tenure_months", "preferred_language", "career_goal")
         return {key: employee.get(key) for key in keys}
 
     def available_steps(self, employee: dict[str, Any]) -> list[dict[str, Any]]:
-        completed = {row["event_id"] for row in self.history if row["employee_id"] == employee["employee_id"] and row["status"] == "completed"}
+        completed = {
+            row["event_id"]
+            for row in self.history
+            if row["employee_id"] == employee["employee_id"]
+            and row["status"] == "completed"
+            and row["event_id"] not in RECURRING_EVENT_IDS
+        }
+        target = self.target_profile(employee) or {}
+        target_role = target.get("role", employee["role"])
+        target_grade = target.get("grade", employee["grade"])
+        reference_date = self.reference_date().isoformat()
         result = []
         for event in self.events.values():
             if event.get("mandatory") or event["event_id"] in completed: continue
-            if employee["role"] not in event.get("target_roles", []) or employee["grade"] not in event.get("target_grades", []): continue
+            if employee["role"] not in event.get("target_roles", []) and target_role not in event.get("target_roles", []): continue
+            if employee["grade"] not in event.get("target_grades", []) and target_grade not in event.get("target_grades", []): continue
             if any(employee.get("skills", {}).get(skill, 0) < level for skill, level in event.get("prerequisites", {}).items()): continue
-            if event.get("format") != "self_paced" and not any(day >= date.today().isoformat() for day in event.get("upcoming_sessions", [])): continue
+            if event.get("format") != "self_paced" and not any(day >= reference_date for day in event.get("upcoming_sessions", [])): continue
             result.append(self.event_summary(event))
         return result
 
@@ -171,7 +199,7 @@ class DatasetStore:
             after = min(before + int(gain["gain"]), int(gain["max_level"])); employee["skills"][skill_id] = after
             updates.append({"skill_id": skill_id, "before": before, "after": after, "capped_by_max_level": after == int(gain["max_level"])})
         record_id = f"LOCAL{len(self.history) + 1:06d}"
-        self.history.append({"record_id": record_id, "employee_id": employee_id, "event_id": event_id, "date": date.today().isoformat(), "due_date": "", "status": "completed", "completion_pct": "100", "score": "", "feedback_rating": "", "assigned_by": "self"})
+        self.history.append({"record_id": record_id, "employee_id": employee_id, "event_id": event_id, "date": self.reference_date().isoformat(), "due_date": "", "status": "completed", "completion_pct": "100", "score": "", "feedback_rating": "", "assigned_by": "self"})
         target = self.target_profile(employee); requirements_met = bool(target) and all(employee["skills"].get(key, 0) >= value for key, value in target["required_skills"].items())
         return {"employee_id": employee_id, "event_id": event_id, "skills_updated": updates, "trajectory_updated": bool(updates), "requirements_met": requirements_met}
 

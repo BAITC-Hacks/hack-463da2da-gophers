@@ -55,13 +55,15 @@ def recommendations(employee_id: str) -> Any:
     except ImportError as exc:
         raise HTTPException(status_code=503, detail="Recommendation engine is not available yet") from exc
     result = recommend(store, employee_id)
+    available_ids = {step["event_id"] for step in store.available_steps(store.employee(employee_id))}
+    available_recommendations = [item for item in result.recommendations if item.event_id in available_ids]
     return {
         "employee_id": result.employee_id,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "engine": result.engine,
         "recommendations": [
             {
-                "rank": item.rank,
+                "rank": rank,
                 "event": store.event_summary(store.events[item.event_id]),
                 "score": item.score,
                 "factors": [
@@ -79,7 +81,7 @@ def recommendations(employee_id: str) -> Any:
                     "factors_used": item.explanation.factors_used,
                 },
             }
-            for item in result.recommendations
+            for rank, item in enumerate(available_recommendations, start=1)
         ],
     }
 

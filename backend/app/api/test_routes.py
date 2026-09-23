@@ -16,6 +16,8 @@ def test_recommendation_response_matches_api_contract_and_recalculates() -> None
     assert payload["employee_id"] == employee_id
     assert payload["generated_at"]
     assert 1 <= len(payload["recommendations"]) <= 3
+    available_ids = {step["event_id"] for step in store.available_steps(store.employee(employee_id))}
+    assert all(item["event"]["event_id"] in available_ids for item in payload["recommendations"])
     first = payload["recommendations"][0]
     assert {"rank", "event", "score", "factors", "explanation"} <= set(first)
     assert first["event"]["event_id"]
