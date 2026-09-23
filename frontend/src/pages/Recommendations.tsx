@@ -1,4 +1,50 @@
-import { useEffect,useState } from 'react'
-import { careerQuestApi,type RecommendationResponse } from '../api/client'
-export function Recommendations({employeeId,onCompleted}:{employeeId?:string,onCompleted:()=>void}){const[d,setD]=useState<RecommendationResponse>();const[e,setE]=useState('');useEffect(()=>{setD(undefined);careerQuestApi.recommendations(employeeId ?? 'E0028').then(setD).catch(()=>setE('Не удалось получить рекомендации'))},[employeeId]);if(e)return <p>{e}</p>;if(!d)return <div className="skeleton large"/>;return <section><h2>Рекомендованные шаги</h2>{d.recommendations.map(x=><article className="recommendation" key={x.event.event_id}><b>{x.event.title}</b><ul>{x.factors.map(f=><li key={f.type}>{f.message}</li>)}</ul><button onClick={async()=>{await careerQuestApi.complete(employeeId ?? 'E0028',x.event.event_id);onCompleted()}}>Выполнено</button></article>)}</section>}
+import { useEffect, useState } from 'react'
+import { careerQuestApi, type RecommendationResponse } from '../api/client'
+import type { Language } from '../api/types'
+import { labels } from '../i18n'
 
+export function Recommendations({ employeeId, language, onCompleted }: { employeeId: string; language: Language; onCompleted: () => void }) {
+  const [data, setData] = useState<RecommendationResponse>()
+  const [error, setError] = useState(false)
+  const [pending, setPending] = useState<string | null>(null)
+  const t = labels[language]
+
+  useEffect(() => {
+    let active = true
+    setData(undefined)
+    setError(false)
+    void careerQuestApi.recommendations(employeeId)
+      .then(result => { if (active) setData(result) })
+      .catch(() => { if (active) setError(true) })
+    return () => { active = false }
+  }, [employeeId])
+
+  async function complete(eventId: string) {
+    setPending(eventId)
+    setError(false)
+    try {
+      await careerQuestApi.complete(employeeId, eventId)
+      onCompleted()
+      setData(await careerQuestApi.recommendations(employeeId))
+    } catch {
+      setError(true)
+    } finally {
+      setPending(null)
+    }
+  }
+
+  return <section className="recommendations-section">
+    <h2>{t.recommendations}</h2>
+    {error && <p role="alert" className="muted">{t.recError}</p>}
+    {!data && !error && <div className="skeleton large" role="status" />}
+    {data?.recommendations.length === 0 && <p className="muted">{t.recEmpty}</p>}
+    {data?.recommendations.map(item => <article className="recommendation" key={item.event.event_id}>
+      <h3>#{item.rank} · {item.event.title}</h3>
+      <p>{item.explanation?.text}</p>
+      <ul>{item.factors.map((factor, index) => <li key={`${factor.type}-${index}`}>{factor.message}</li>)}</ul>
+      <button type="button" disabled={pending !== null} onClick={() => void complete(item.event.event_id)}>
+        {pending === item.event.event_id ? t.completing : t.complete}
+      </button>
+    </article>)}
+  </section>
+}
