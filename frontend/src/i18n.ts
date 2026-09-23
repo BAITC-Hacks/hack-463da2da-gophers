@@ -1,1 +1,1 @@
-export const labels={ru:'Мой карьерный путь',kk:'Менің мансап жолым',en:'My career path'} as const
+export const labels={ru:{role:'Роль',goal:'Цель',skills:'Навыки для следующего уровня',history:'История активностей',recommendations:'Рекомендованные шаги'},kk:{role:'Рөл',goal:'Мақсат',skills:'Келесі деңгейге дағдылар',history:'Белсенділік тарихы',recommendations:'Ұсынылған қадамдар'},en:{role:'Role',goal:'Goal',skills:'Skills for next level',history:'Activity history',recommendations:'Recommended steps'}} as const
