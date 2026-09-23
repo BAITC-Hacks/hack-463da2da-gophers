@@ -11,13 +11,12 @@ services:
       - ./career_quest_dataset/case_1/career_quest_dataset:/data:ro
     restart: unless-stopped
 
-  # Включить после Этапа 0 Gravity (frontend/package.json):
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "5173:5173"
-  #   environment:
-  #     - VITE_API_URL=http://localhost:8000
-  #   depends_on:
-  #     - backend
-  #   restart: unless-stopped
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
