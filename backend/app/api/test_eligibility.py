@@ -12,6 +12,7 @@ def test_target_grade_activity_is_available_and_can_be_completed() -> None:
     completed = store.complete(employee_id, "EV_009")
     assert completed["trajectory_updated"] is True
     assert completed["event_id"] == "EV_009"
+    assert store.history[-1]["date"] == DATASET_SNAPSHOT_DATE
 
 
 def test_recurring_club_stays_available_after_completion_and_snapshot_is_stable() -> None:

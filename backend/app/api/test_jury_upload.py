@@ -43,7 +43,7 @@ def test_admin_loads_three_jury_profiles_and_reports_validation_errors() -> None
     assert response.status_code == 200
     assert response.json()["employees_loaded"] == 3
     assert response.json()["history_records_loaded"] == 3
-    assert client.get("/employees/JURY003").status_code == 200
+    assert client.get("/employees/JURY003", headers={"X-Role": "hr"}).status_code == 200
 
     invalid = client.post(
         "/admin/load-dataset",

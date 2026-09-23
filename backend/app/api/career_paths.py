@@ -130,6 +130,7 @@ def build_career_paths(
             history_metrics,
             context.next_role,
             context.next_grade,
+            today=store.reference_date(),
             top_k=len(all_events),
         )
         if candidate.event_id in events_by_id

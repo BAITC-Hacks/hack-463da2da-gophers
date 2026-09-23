@@ -10,6 +10,7 @@ def test_career_twin_honors_format_and_projects_readiness() -> None:
 
     response = client.post(
         "/employees/E0001/career-paths",
+        headers={"X-Role": "employee", "X-Employee-Id": "E0001"},
         json={"preferred_format": "self_paced", "hours_per_week": 8},
     )
 
@@ -27,5 +28,9 @@ def test_career_twin_honors_format_and_projects_readiness() -> None:
     assert flexible["readiness"]["after"] >= flexible["readiness"]["before"]
     assert len({factor["type"] for factor in flexible["factors"]}) >= 3
 
-    invalid_format = client.post("/employees/E0001/career-paths", json={"preferred_format": "hybrid"})
+    invalid_format = client.post(
+        "/employees/E0001/career-paths",
+        headers={"X-Role": "employee", "X-Employee-Id": "E0001"},
+        json={"preferred_format": "hybrid"},
+    )
     assert invalid_format.status_code == 422
