@@ -4,7 +4,8 @@
 
 | Трек | Кто | Директория (только тут!) |
 |---|---|---|
-| **AI-ядро** | тимлид (агент GLM/opencode) | `backend/app/ai/` |
+| **AI-ядро / core** | тимлид (GLM) | `backend/app/ai/core/`, `contracts.py`, `recommender.py` |
+| **AI-ядро / llm** | 2-й контекст тимлида (Codex) | `backend/app/ai/llm/` |
 | **Backend** | Алмас (+ тимлид) | `backend/app/api/`, `backend/app/main.py` |
 | **Frontend** | Тим | `frontend/` |
 
@@ -40,11 +41,12 @@
 - [ ] Учитывать upcoming_sessions (self_paced доступен всегда)
 - [ ] Выход: топ-1..3 кандидата с факторами для объяснения
 
-### Этап 3 — LLM-слой
-- [ ] OpenAI gpt-4o-mini: обоснование по ≥3 факторам (грейд, разрывы, история, требования next уровня), structured output
-- [ ] NVIDIA API фолбэк при ошибке/таймауте
-- [ ] Локализация ru/kk/en по preferred_language сотрудника
-- [ ] Кэширование рекомендаций, дедлайн 10 сек
+### Этап 3 — LLM-слой → ВЫДЕЛЕН CODEX (2-й контекст тимлида, зона `backend/app/ai/llm/`)
+- [ ] `explainer.py: explain(candidate: ScoredCandidate, ctx: EmployeeContext, language) -> Explanation` строго по `contracts.py`
+- [ ] OpenAI gpt-4o-mini: обоснование по ≥3 факторам (грейд, разрывы, история, требования next уровня)
+- [ ] NVIDIA API фолбэк при ошибке/таймауте; heuristic-fallback из factor.message без LLM
+- [ ] Локализация ru/kk/en по preferred_language, таймаут 8 с, кэш
+- [ ] Мок-тесты без реальных вызовов + live-тест за флагом LLM_LIVE_TEST=1
 
 ### Этап 4 — тесты на проверочные профили
 - [ ] Кейс из ТЗ: низкий Public Speaking + 3 пропуска подобных + критичный System Design → рекомендация НЕ «бери минимальный навык»
