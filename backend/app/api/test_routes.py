@@ -37,3 +37,23 @@ def test_recommendation_response_matches_api_contract_and_recalculates() -> None
     assert first["event"]["event_id"] not in {
         item["event"]["event_id"] for item in after.json()["recommendations"]
     }
+
+
+def test_recommendations_never_return_a_step_that_backend_rejects(monkeypatch) -> None:
+    """Protect the core demo flow for every profile in the supplied dataset."""
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    store.load_default()
+    client = TestClient(app)
+
+    for employee_id in store.employees:
+        response = client.post(
+            f"/recommendations/{employee_id}",
+            headers={"X-Role": "employee", "X-Employee-Id": employee_id},
+        )
+        assert response.status_code == 200
+        available_ids = {step["event_id"] for step in store.available_steps(store.employee(employee_id))}
+        assert all(
+            recommendation["event"]["event_id"] in available_ids
+            for recommendation in response.json()["recommendations"]
+        )
