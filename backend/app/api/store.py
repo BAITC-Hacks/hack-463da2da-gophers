@@ -49,7 +49,13 @@ class DatasetStore:
         parsed_events = self._items(events, "events") if events is not None else None
         parsed_skills = self._items(skills, "skills") if skills is not None else None
         parsed_history = self._history_items(activity_history) if activity_history is not None else None
-        errors = self._validate(parsed_employees, parsed_events, parsed_skills, parsed_history)
+        errors = self._validate(
+            parsed_employees,
+            parsed_events,
+            parsed_skills,
+            parsed_history,
+            reject_existing_history=not replace,
+        )
         if errors:
             raise HTTPException(status_code=422, detail={"errors": errors})
         if replace:
@@ -85,26 +91,73 @@ class DatasetStore:
         if isinstance(payload, str): return list(csv.DictReader(io.StringIO(payload)))
         raise ValueError("activity_history: expected CSV text or array")
 
-    def _validate(self, employees: Any, events: Any, skills: Any, history: Any) -> list[str]:
+    def _validate(
+        self,
+        employees: Any,
+        events: Any,
+        skills: Any,
+        history: Any,
+        *,
+        reject_existing_history: bool,
+    ) -> list[str]:
         errors: list[str] = []
-        known_skills = set(self.skills) | {x.get("skill_id") for x in (skills or [])}
-        known_events = set(self.events) | {x.get("event_id") for x in (events or [])}
-        known_employees = set(self.employees) | {x.get("employee_id") for x in (employees or [])}
+        known_skills = set(self.skills) | {x.get("skill_id") for x in (skills or []) if isinstance(x, dict)}
+        known_events = set(self.events) | {x.get("event_id") for x in (events or []) if isinstance(x, dict)}
+        known_employees = set(self.employees) | {x.get("employee_id") for x in (employees or []) if isinstance(x, dict)}
         for collection, key in ((employees, "employee_id"), (events, "event_id"), (skills, "skill_id")):
             seen: set[str] = set()
             for index, item in enumerate(collection or [], 1):
-                value = item.get(key) if isinstance(item, dict) else None
-                if not value: errors.append(f"{key} row {index}: missing {key}")
+                if not isinstance(item, dict):
+                    errors.append(f"{key} row {index}: expected an object")
+                    continue
+                value = item.get(key)
+                if not value:
+                    errors.append(f"{key} row {index}: missing {key}")
                 elif value in seen: errors.append(f"{key} row {index}: duplicate {value}")
                 seen.add(value)
+        existing_history_ids = {row.get("record_id") for row in self.history}
+        history_ids: set[str] = set()
+        for index, row in enumerate(history or [], 1):
+            if not isinstance(row, dict):
+                errors.append(f"activity_history row {index}: expected an object")
+                continue
+            record_id = row.get("record_id")
+            if not record_id:
+                errors.append(f"activity_history row {index}: missing record_id")
+            elif record_id in history_ids or (reject_existing_history and record_id in existing_history_ids):
+                errors.append(f"activity_history row {index}: duplicate record_id {record_id}")
+            history_ids.add(record_id)
         for index, item in enumerate(employees or [], 1):
+            if not isinstance(item, dict):
+                continue
+            for field in ("full_name", "department", "role", "tenure_months", "preferred_language", "skills"):
+                if field not in item:
+                    errors.append(f"employees row {index}: missing {field}")
             if item.get("grade") not in GRADES: errors.append(f"employees row {index}: invalid grade")
-            for skill_id in item.get("skills", {}):
+            employee_skills = item.get("skills", {})
+            if not isinstance(employee_skills, dict):
+                errors.append(f"employees row {index}: skills must be an object")
+                continue
+            for skill_id, level in employee_skills.items():
                 if skill_id not in known_skills: errors.append(f"employees row {index}: unknown skill {skill_id}")
+                elif not isinstance(level, int) or not 0 <= level <= 5:
+                    errors.append(f"employees row {index}: invalid level for {skill_id}")
         for index, item in enumerate(events or [], 1):
-            for skill_id in list(item.get("prerequisites", {})) + [x.get("skill_id") for x in item.get("develops_skills", [])]:
+            if not isinstance(item, dict):
+                continue
+            prerequisites = item.get("prerequisites", {})
+            develops_skills = item.get("develops_skills", [])
+            if not isinstance(prerequisites, dict):
+                errors.append(f"events row {index}: prerequisites must be an object")
+                prerequisites = {}
+            if not isinstance(develops_skills, list):
+                errors.append(f"events row {index}: develops_skills must be an array")
+                develops_skills = []
+            for skill_id in list(prerequisites) + [x.get("skill_id") for x in develops_skills if isinstance(x, dict)]:
                 if skill_id not in known_skills: errors.append(f"events row {index}: unknown skill {skill_id}")
         for index, row in enumerate(history or [], 1):
+            if not isinstance(row, dict):
+                continue
             if row.get("employee_id") not in known_employees: errors.append(f"history row {index}: unknown employee")
             if row.get("event_id") not in known_events: errors.append(f"history row {index}: unknown event")
             if row.get("status") not in ALLOWED_STATUSES: errors.append(f"history row {index}: invalid status")

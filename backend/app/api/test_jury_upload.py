@@ -52,4 +52,25 @@ def test_admin_loads_three_jury_profiles_and_reports_validation_errors() -> None
     )
     assert invalid.status_code == 422
     assert invalid.json()["detail"]["errors"]
+
+    incomplete = client.post(
+        "/admin/load-dataset",
+        headers={"X-Role": "hr"},
+        json={"employees": {"employees": [{"employee_id": "INCOMPLETE", "grade": "Middle", "skills": {}}]}},
+    )
+    assert incomplete.status_code == 422
+    assert any("missing full_name" in error for error in incomplete.json()["detail"]["errors"])
+
+    duplicate_history = {
+        "record_id": "JURY_DUPLICATE", "employee_id": "E0001", "event_id": "EV_005",
+        "date": "2026-09-01", "due_date": "", "status": "completed", "completion_pct": 100,
+        "score": 90, "feedback_rating": 5, "assigned_by": "self",
+    }
+    duplicate = client.post(
+        "/admin/load-dataset",
+        headers={"X-Role": "hr"},
+        json={"activity_history": [duplicate_history, duplicate_history]},
+    )
+    assert duplicate.status_code == 422
+    assert any("duplicate record_id JURY_DUPLICATE" in error for error in duplicate.json()["detail"]["errors"])
     store.load_default()
