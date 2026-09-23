@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { mockEmployees, mockProfile } from './mock'
-import type { EmployeeProfile, EmployeeSummary } from './types'
+import type { CareerPathRequest, CareerPathsResponse, EmployeeProfile, EmployeeSummary } from './types'
 
 const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000', timeout: 10_000 })
 const useMocks = import.meta.env.VITE_USE_MOCKS === 'true'
@@ -12,4 +12,7 @@ export const careerQuestApi = {
   async recommendations(id: string): Promise<RecommendationResponse> { return (await api.post<RecommendationResponse>(`/recommendations/${id}`)).data },
   async complete(id: string, eventId: string): Promise<CompletionResult> { return (await api.post<CompletionResult>(`/employees/${id}/complete/${eventId}`)).data },
   async hrDashboard(): Promise<unknown> { return (await api.get('/hr/dashboard', { headers: { 'X-Role': 'hr' } })).data },
+  async careerPaths(id: string, constraints: CareerPathRequest): Promise<CareerPathsResponse> {
+    return (await api.post<CareerPathsResponse>('/employees/' + encodeURIComponent(id) + '/career-paths', constraints)).data
+  },
 }

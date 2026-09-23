@@ -20,3 +20,31 @@ export interface EmployeeProfile {
 }
 
 export interface EventSummary { event_id: string; title: string; type: string; format: string; duration_hours: number; mandatory: boolean }
+
+export type ActivityFormat = 'online' | 'offline' | 'self_paced'
+
+export interface CareerPathRequest {
+  preferred_format: ActivityFormat | null
+  hours_per_week: number | null
+}
+
+export interface CareerPath {
+  kind: 'fast' | 'flexible'
+  title: string
+  status: 'ready' | 'no_eligible_steps'
+  constraint_honored: boolean
+  reason: string
+  steps: Array<{ rank: number; score: number; event: EventSummary }>
+  factors: Array<{ type: string; skill_id: string | null; message: string; weight: number }>
+  total_hours: number
+  estimated_weeks: number | null
+  readiness: { before: number; after: number }
+}
+
+export interface CareerPathsResponse {
+  employee_id: string
+  target: { role: string; grade: string } | null
+  constraints: CareerPathRequest
+  paths: CareerPath[]
+  reason?: string
+}
