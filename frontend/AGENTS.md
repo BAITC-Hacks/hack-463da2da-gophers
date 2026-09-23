@@ -1,8 +1,8 @@
-# AGENTS.md — зона Codex (Frontend)
+# AGENTS.md — трек Frontend (зона Тима, инструмент любой)
 
-Ты — **Codex** (агент Тима). Твоя зона: `frontend/`. Твой трек в `TODO.md`: «Codex (трек Frontend)», этапы 0–4.
+Работаешь по треку **Frontend**. Твоя зона: `frontend/`. Твой трек в `TODO.md`: «Frontend (Тим)», этапы 0–4. Инструмент (Codex, Antigravity или другой) не важен — роль определяет трек, а не бренд агента.
 
-Перед началом работы объяви: `Я — Codex. Моя зона: frontend/. Мой трек: ...`
+Перед началом работы объяви: `Работаю по треку Frontend. Моя зона: frontend/. Мой инструмент: <...>.`
 
 ## Что ты строишь
 
@@ -14,4 +14,4 @@
 
 ## Границы
 
-Backend — зона Antigravity (`backend/app/`), AI-скоринг — зона GLM (`backend/app/ai/`). API ждёшь строго по `docs/openapi.yaml`; если бек отстаёт — мок-данные по схемам из него. Каждый этап — коммит `feat(front): ...`. Перед коммитом: `git pull`.
+Backend — трек Backend (`backend/app/`), AI-скоринг — трек AI-ядро (`backend/app/ai/`). API ждёшь строго по `docs/openapi.yaml`; если бек отстаёт — мок-данные по схемам из него. Каждый этап — коммит `feat(front): ...`. Перед коммитом: `git pull`.

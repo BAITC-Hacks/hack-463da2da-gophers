@@ -13,10 +13,10 @@
 
 ## Контракты
 
-- Antigravity вызывает мой код через `backend/app/ai/recommender.py:recommend(employee_id, ...) -> RecommendationResult`
+- Бек-трек вызывает мой код через `backend/app/ai/recommender.py:recommend(employee_id, ...) -> RecommendationResult`
 - Схема факторов и ответа — в `docs/openapi.yaml` (components.schemas.Recommendation, Factor)
 - Датасет: `career_quest_dataset/case_1/career_quest_dataset/` (формат — в README.md там же)
 
 ## Правила
 
-Работаю ТОЛЬКО тут. Эндпоинты — зона Antigravity (`backend/app/api/`), UI — зона Codex (`frontend/`). Каждый этап — коммит `feat(ai): ...`. Общие файлы (AGENTS.md, TODO.md, openapi.yaml, docker-compose.yml) — только через GLM.
+Работаю ТОЛЬКО тут. Эндпоинты — трек Backend (`backend/app/api/`), UI — трек Frontend (`frontend/`). Каждый этап — коммит `feat(ai): ...`. Общие файлы (AGENTS.md, TODO.md, openapi.yaml, docker-compose.yml) — только через GLM.

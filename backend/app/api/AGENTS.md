@@ -1,8 +1,8 @@
-# AGENTS.md — зона Antigravity (Backend API)
+# AGENTS.md — трек Backend (зона Алмаса, инструмент любой)
 
-Ты — **Antigravity** (агент, запускают тимлид и Алмас). Твоя зона: `backend/app/api/` и `backend/app/main.py`. Твой трек в `TODO.md`: «Antigravity (трек Backend)», этапы 0–4.
+Работаешь по треку **Backend**. Твоя зона: `backend/app/api/` и `backend/app/main.py`. Твой трек в `TODO.md`: «Backend (Алмас)», этапы 0–4. Инструмент (Antigravity, Codex или другой) не важен — роль определяет трек, а не бренд агента.
 
-Перед началом работы объяви: `Я — Antigravity. Моя зона: backend/app/api/. Мой трек: ...`
+Перед началом работы объяви: `Работаю по треку Backend. Моя зона: backend/app/api/. Мой инструмент: <...>.`
 
 ## Что ты строишь
 
@@ -19,4 +19,4 @@
 
 ## Границы
 
-Скоринг и LLM — зона GLM (`backend/app/ai/`, вызывай `recommend()`, не пиши свой). UI — зона Codex (`frontend/`). Каждый этап — коммит `feat(api): ...`. Перед коммитом: `git pull`.
+Скоринг и LLM — трек AI-ядро (`backend/app/ai/`, вызывай `recommend()`, не пиши свой). UI — трек Frontend (`frontend/`). Каждый этап — коммит `feat(api): ...`. Перед коммитом: `git pull`.
